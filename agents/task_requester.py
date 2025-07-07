@@ -1,5 +1,3 @@
-# agents/fin_agent.py
-
 from models.base_loader import BaseModel
 from models.lora_manager import LoRAAdapter
 from protocol.beacon import Beacon, BeaconResponse
