@@ -34,7 +34,7 @@ class SoftCoordinator:
             ttl=2
         )
         suggestions = self.receive_beacon(beacon)
-        return suggestions  # Return top-N suggestions to FIN fallback logic
+        return suggestions
 
     def update_network_state(self, agent_heartbeat):
         """Optionally used to record liveliness and update recent capabilities."""

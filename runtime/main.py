@@ -14,15 +14,15 @@ from tools.tool_math import MathTool
 from tools.tool_translate import TranslateTool
 from tools.tool_search import SearchTool
 
-# 简化的 Agent 初始化流程（支持 FIN / LTN）
+# 简化的 Agent 初始化流程（支持 TaskRequester | ComputeProvider）
 def main():
-    parser = argparse.ArgumentParser(description="Run ECN Agent")
+    parser = argparse.ArgumentParser(description="Run Symphony Agent")
     parser.add_argument("--config", type=str, required=True, help="path to config.yaml")
     args = parser.parse_args()
 
     # 加载配置
     cfg = load_config(args.config)
-    role = cfg.get("role", "FIN")
+    role = cfg.get("role", "TaskRequester")
     node_id = cfg.get("node_id", "agent-001")
 
     # 初始化模块

@@ -5,7 +5,7 @@ import json
 
 DEFAULT_CONFIG = {
     "node_id": os.getenv("NODE_ID", "agent-001"),
-    "agent_type": os.getenv("AGENT_TYPE", "FIN"),  # FIN | LTN | NAP
+    "agent_type": os.getenv("AGENT_TYPE", "TaskRequester"),  # TaskRequester | ComputeProvider | NAP
     "model_path": os.getenv("MODEL_PATH", "mistral-7b-instruct"),
     "lora_dir": os.getenv("LORA_DIR", "./lora_patches"),
     "listen_port": int(os.getenv("PORT", 8080)),

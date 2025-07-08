@@ -2,7 +2,7 @@
 
 # 基础配置
 debug: true
-role: "FIN"            # 可选: FIN / LTN / NAP
+role: "task_requester"            # 可选: task_requester / compute_provider / reward_provider / NAP
 node_id: "agent-001"
 
 # 模型加载配置
