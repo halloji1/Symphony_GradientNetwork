@@ -7,7 +7,7 @@ from core.memory import LocalMemory
 from protocol.task_contract import TaskDAG, SubTask
 from p2p.network import ISEPClient
 
-class FINAgent:
+class TaskRequester:
     def __init__(self, id, model_path, sys_prompt, capabilities):
         self.id = id
         self.base_model = BaseModel(model_path, sys_prompt)

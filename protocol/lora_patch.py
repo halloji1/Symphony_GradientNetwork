@@ -7,12 +7,13 @@ import uuid
 from typing import Dict
 
 class LoRAPatch:
-    def __init__(self, source_id: str, patch_path: str, layer_names: list):
+    def __init__(self, source_id: str, patch_path: str, layer_names: list, is_sparse=False):
         self.patch_id = str(uuid.uuid4())
         self.source_id = source_id              # 发起共享 patch 的节点 ID
         self.patch_path = patch_path            # 本地存储路径
         self.layer_names = layer_names          # 被更新的 LoRA 层名
         self.timestamp = int(time.time())
+        self.is_sparse = is_sparse
 
     def to_dict(self) -> Dict:
         return {
@@ -20,7 +21,8 @@ class LoRAPatch:
             "source_id": self.source_id,
             "patch_path": self.patch_path,
             "layer_names": self.layer_names,
-            "timestamp": self.timestamp
+            "timestamp": self.timestamp,
+            "is_sparse": self.is_sparse
         }
 
     @staticmethod
@@ -29,6 +31,7 @@ class LoRAPatch:
             source_id=data.get("source_id", "unknown"),
             patch_path=data.get("patch_path", ""),
             layer_names=data.get("layer_names", []),
+            is_sparse=data.get("is_sparse", False)
         )
 
     def save_patch(self, state_dict, save_dir="shared_patches"):
