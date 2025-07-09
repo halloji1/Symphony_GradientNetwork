@@ -34,14 +34,26 @@ class ComputeProvider:
         # 发送响应
         self.ise.send_response(sender_id, "beacon_response", response)
 
-    def execute(self, task_data):
-        tool_name = task_data.get("tool")
-        tool = self.tool_modules.get(tool_name)
-        if not tool:
-            raise Exception(f"Tool '{tool_name}' not available.")
-        result = tool.execute(task_data)
-        self.memory.store_result(result)
-        return result
+    def execute(self, subtask):
+        """
+        重新设计的 execute 函数，调用本地模型完成子任务
+        """
+        try:
+            # 提取任务描述
+            task_description = subtask.get("task_description")
+            if not task_description:
+                raise ValueError("Task description is missing in task data.")
+
+            # 调用本地模型生成结果
+            result = self.base_model.generate(task_description)
+
+            # 存储结果到本地内存
+            self.memory.store_result({"task_data": task_data, "result": result})
+
+            return result
+        except Exception as e:
+            print(f"[ComputeProvider] Error executing task: {str(e)}")
+            return None
     
     def evaluate_and_update(self, task_result, reward_score):
         prev_state = self.lora.model.state_dict()
