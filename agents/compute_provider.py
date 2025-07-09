@@ -36,11 +36,11 @@ class ComputeProvider:
 
     def execute(self, subtask):
         """
-        重新设计的 execute 函数，调用本地模型完成子任务
+        调用本地模型完成子任务
         """
         try:
             # 提取任务描述
-            task_description = subtask.get("task_description")
+            task_description = subtask.get("desc")
             if not task_description:
                 raise ValueError("Task description is missing in task data.")
 
@@ -48,7 +48,7 @@ class ComputeProvider:
             result = self.base_model.generate(task_description)
 
             # 存储结果到本地内存
-            self.memory.store_result({"task_data": task_data, "result": result})
+            self.memory.store_result({"task": subtask, "result": result})
 
             return result
         except Exception as e:
