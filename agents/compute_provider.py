@@ -1,32 +1,38 @@
 from models.base_loader import BaseModel
 from protocol.beacon import Beacon
+from protocol.response import BeaconResponse
 from models.lora_manager import LoRAAdapter
-from core.capability import match_capability
+from core.capability import CapabilityManager
 from tools.base_tool import load_tool
 from core.memory import LocalMemory
 from protocol.lora_patch import LoRAPatch
 from infra.sparta_communicator import SpartacusCommunicator
 from typing import Dict
+from infra.ISEP import ISEPClient
 
 class ComputeProvider:
     def __init__(self, id, model_path, sys_prompt, tools):
         self.id = id
         self.base_model = BaseModel(model_path, sys_prompt)
         self.lora = LoRAAdapter(self.base_model)
-        self.capabilities = tools
+        self.capab_manager = CapabilityManager(tools)
         self.tool_modules = {tool: load_tool(tool) for tool in tools}
         self.memory = LocalMemory()
+        self.ise = ISEPClient(self.id)
 
-        self.sparta_communicator = SpartacusCommunicator(id, self.config)
-        self.sparta_communicator.register_callback(self._handle_received_patch)
-        self.sparta_communicator.start()
+        # self.sparta_communicator = SpartacusCommunicator(id, self.config)
+        # self.sparta_communicator.register_callback(self._handle_received_patch)
+        # self.sparta_communicator.start()
 
         self.received_patches = []
 
-    def handle_beacon(self, beacon: Beacon):
-        if match_capability(beacon.requirement, self.capabilities):
-            return True
-        return False
+    def handle_beacon(self, sender_id: str, beacon: Beacon):
+        # 计算能力得分
+        score = self.capab_manager.match(beacon.requirement)
+        # 创建 BeaconResponse
+        response = BeaconResponse(self.id, self.capab_manager.capabilities, match_score=score)
+        # 发送响应
+        self.ise.send_response(sender_id, "beacon_response", response)
 
     def execute(self, task_data):
         tool_name = task_data.get("tool")
@@ -51,7 +57,7 @@ class ComputeProvider:
         )
         saved_path = patch.save_patch(sparse_delta)
 
-        self.sparta_communicator.broadcast_lora_patch(patch)
+        # self.sparta_communicator.broadcast_lora_patch(patch)
         return patch
     
     def _handle_received_patch(self, patch: LoRAPatch):

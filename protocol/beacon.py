@@ -37,3 +37,4 @@ class Beacon:
 
     def __repr__(self):
         return f"<Beacon {self.task_id[:8]} from {self.sender} need '{self.requirement}' TTL={self.ttl}>"
+

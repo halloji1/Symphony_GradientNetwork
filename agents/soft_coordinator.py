@@ -1,6 +1,7 @@
 # soft_coordinator.py
 
-from protocol.beacon import Beacon, BeaconResponse
+from protocol.beacon import Beacon
+from protocol.response import BeaconResponse
 from core.reputation import ReputationManager
 from core.capability import match_capability
 from protocol.task_contract import SubTask

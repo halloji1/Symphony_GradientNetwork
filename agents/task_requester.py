@@ -1,11 +1,11 @@
 from models.base_loader import BaseModel
 from models.lora_manager import LoRAAdapter
-from protocol.beacon import Beacon, BeaconResponse
-from core.capability import match_capability
-from core.reputation import update_reputation
+from protocol.beacon import Beacon
+from protocol.response import BeaconResponse
+from core.capability import CapabilityManager
 from core.memory import LocalMemory
 from protocol.task_contract import TaskDAG, SubTask
-from p2p.network import ISEPClient
+from infra.ISEP import ISEPClient
 
 class TaskRequester:
     def __init__(self, id, model_path, sys_prompt, capabilities):
@@ -15,11 +15,6 @@ class TaskRequester:
         self.capabilities = capabilities
         self.memory = LocalMemory()
         self.ise = ISEPClient(self.id)
-
-    def handle_beacon(self, beacon: Beacon):
-        if match_capability(beacon.requirement, self.capabilities):
-            return BeaconResponse(self.id, self.capabilities)
-        return None
 
     def decompose_task(self, task_description: str) -> TaskDAG:
         dag_structure = self.base_model.generate_task_dag(task_description)
@@ -44,5 +39,4 @@ class TaskRequester:
 
     def evaluate_and_update(self, task_result, reward_score):
         self.lora.update_from_reward(reward_score)
-        update_reputation(task_result.source_id, reward_score)
         self.memory.store_result(task_result)
