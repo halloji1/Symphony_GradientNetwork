@@ -6,6 +6,7 @@ from threading import Timer
 from protocol.beacon import Beacon
 from protocol.response import BeaconResponse
 from protocol.task_contract import TaskContract, TaskResult
+from protocol.task_contract import TaskDAG, SubTask
 from infra.network_adapter import NetworkAdapter
 
 class ISEPClient:
@@ -45,7 +46,7 @@ class ISEPClient:
     def send_response(self, target_id, msg_type, response):
         self.network.send(target_id, msg_type, response)
     
-    def delegate_task(self, executor_id: str, subtask: 'SubTask') -> str:
+    def delegate_task(self, executor_id: str, subtask: SubTask) -> str:
         """委派子任务给执行者"""
         contract_id = str(uuid4())
         contract = TaskContract(
