@@ -3,7 +3,6 @@ from protocol.beacon import Beacon
 from protocol.response import BeaconResponse
 from models.lora_manager import LoRAAdapter
 from core.capability import CapabilityManager
-from tools.base_tool import load_tool
 from core.memory import LocalMemory
 from protocol.lora_patch import LoRAPatch
 from infra.sparta_communicator import SpartacusCommunicator
@@ -17,7 +16,6 @@ class ComputeProvider:
         self.base_model = BaseModel(model_path, sys_prompt)
         self.lora = LoRAAdapter(self.base_model)
         self.capab_manager = CapabilityManager(tools)
-        self.tool_modules = {tool: load_tool(tool) for tool in tools}
         self.memory = LocalMemory()
         self.network = NetworkAdapter(id, host="localhost", port=8000)
         self.ise = ISEPClient(self.id, self.network)
