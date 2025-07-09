@@ -6,6 +6,7 @@ from core.capability import CapabilityManager
 from core.memory import LocalMemory
 from protocol.task_contract import TaskDAG, SubTask
 from infra.ISEP import ISEPClient
+from infra.network_adapter import NetworkAdapter
 
 class TaskRequester:
     def __init__(self, id, model_path, sys_prompt, capabilities):
@@ -14,7 +15,8 @@ class TaskRequester:
         self.lora = LoRAAdapter(self.base_model)
         self.capabilities = capabilities
         self.memory = LocalMemory()
-        self.ise = ISEPClient(self.id)
+        self.network = NetworkAdapter(id, host="localhost", port=8000)
+        self.ise = ISEPClient(self.id, self.network)
 
     def decompose_task(self, task_description: str) -> TaskDAG:
         dag_structure = self.base_model.generate_task_dag(task_description)

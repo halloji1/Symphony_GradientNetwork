@@ -9,6 +9,7 @@ from protocol.lora_patch import LoRAPatch
 from infra.sparta_communicator import SpartacusCommunicator
 from typing import Dict
 from infra.ISEP import ISEPClient
+from infra.network_adapter import NetworkAdapter
 
 class ComputeProvider:
     def __init__(self, id, model_path, sys_prompt, tools):
@@ -18,7 +19,8 @@ class ComputeProvider:
         self.capab_manager = CapabilityManager(tools)
         self.tool_modules = {tool: load_tool(tool) for tool in tools}
         self.memory = LocalMemory()
-        self.ise = ISEPClient(self.id)
+        self.network = NetworkAdapter(id, host="localhost", port=8000)
+        self.ise = ISEPClient(self.id, self.network)
 
         # self.sparta_communicator = SpartacusCommunicator(id, self.config)
         # self.sparta_communicator.register_callback(self._handle_received_patch)
