@@ -3,7 +3,7 @@
 from protocol.beacon import Beacon
 from protocol.response import BeaconResponse
 from core.reputation import ReputationManager
-from core.capability import match_capability
+from core.capability import CapabilityManager
 from protocol.task_contract import SubTask
 
 class SoftCoordinator:
@@ -11,6 +11,7 @@ class SoftCoordinator:
         self.node_id = node_id
         self.known_agents = known_agents  # List of agent metadata
         self.reputation = ReputationManager(reputation_db)
+        self.capab_manager = CapabilityManager()
 
     def receive_beacon(self, beacon: Beacon):
         """
@@ -19,7 +20,7 @@ class SoftCoordinator:
         """
         matches = []
         for agent in self.known_agents:
-            if match_capability(beacon.requirement, agent['capabilities']):
+            if self.capab_manager.match(beacon.requirement):
                 score = self.reputation.get_score(agent['id'])
                 matches.append((agent['id'], score))
 

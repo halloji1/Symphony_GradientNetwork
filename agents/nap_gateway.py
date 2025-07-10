@@ -1,12 +1,13 @@
 # agents/nap_gateway.py
 
 from protocol.beacon import Beacon
-from core.identity import generate_did
+from core.identity import Identity
 
 class NAPGateway:
     def __init__(self, gateway_id, api_interface):
         self.id = gateway_id
-        self.did = generate_did()
+        self.identity = Identity()
+        self.did = self.identity.generate_did()
         self.api = api_interface
 
     def receive_task(self, external_request):
