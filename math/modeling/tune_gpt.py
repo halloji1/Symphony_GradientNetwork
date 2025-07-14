@@ -110,6 +110,8 @@ def run_training(args, train_data):
     trainer.train()
     
     trainer.save_model(os.path.join(args.save_dir, "final_checkpoint"))
+    final_checkpoint_path = os.path.join(args.save_dir, "final_checkpoint")
+    print(f"Final checkpoint will be saved to: {final_checkpoint_path}")
     print("Finished")
 
 
