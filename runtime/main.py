@@ -1,4 +1,11 @@
 # runtime/main.py
+import sys
+import os
+
+# 获取项目根目录
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# 将项目根目录添加到 Python 搜索路径
+sys.path.append(project_root)
 
 import argparse
 import logging
