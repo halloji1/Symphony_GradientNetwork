@@ -6,10 +6,10 @@ from dataclasses import asdict
 import time
 
 class NetworkAdapter:
-    def __init__(self, node_id: str, host: str = "localhost", port: int = 8000):
+    def __init__(self, node_id: str, config: dict):
         self.node_id = node_id
-        self.host = host
-        self.port = port
+        self.host = config["network"]["host"]
+        self.port = config["network"]["port"]
         self.neighbors: Dict[str, Tuple[str, int]] = {}  # 节点ID → (主机, 端口)
         self.handlers: Dict[str, Callable] = {}
         self.server_socket = None

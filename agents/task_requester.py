@@ -9,13 +9,13 @@ from infra.ISEP import ISEPClient
 from infra.network_adapter import NetworkAdapter
 
 class TaskRequester:
-    def __init__(self, id, model_path, sys_prompt, capabilities):
-        self.id = id
-        self.base_model = BaseModel(model_path, sys_prompt)
+    def __init__(self, config):
+        self.id = config["node_id"]
+        self.base_model = BaseModel(config["base_model"], config["sys_prompt"])
         self.lora = LoRAAdapter(self.base_model)
-        self.capabilities = capabilities
+        self.capabilities = config["capabilities"]
         self.memory = LocalMemory()
-        self.network = NetworkAdapter(id, host="localhost", port=8000)
+        self.network = NetworkAdapter(self.id, config)
         self.ise = ISEPClient(self.id, self.network)
 
     def decompose_task(self, task_description: str) -> TaskDAG:

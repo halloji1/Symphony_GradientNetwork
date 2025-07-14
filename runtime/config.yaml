@@ -30,3 +30,8 @@ lora:
 
 # 日志
 log_level: "INFO"
+
+# 网络适配器配置
+network:
+  host: "task_requester_server_ip"  # 替换为 TaskRequester 服务器的 IP 地址
+  port: 8000

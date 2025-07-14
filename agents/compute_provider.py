@@ -11,13 +11,13 @@ from infra.ISEP import ISEPClient
 from infra.network_adapter import NetworkAdapter
 
 class ComputeProvider:
-    def __init__(self, id, model_path, sys_prompt, tools):
-        self.id = id
-        self.base_model = BaseModel(model_path, sys_prompt)
+    def __init__(self, config):
+        self.id = config["node_id"]
+        self.base_model = BaseModel(config["base_model"], config["sys_prompt"])
         self.lora = LoRAAdapter(self.base_model)
-        self.capab_manager = CapabilityManager(tools)
+        self.capabilities = config["capabilities"]
         self.memory = LocalMemory()
-        self.network = NetworkAdapter(id, host="localhost", port=8000)
+        self.network = NetworkAdapter(self.id, config)
         self.ise = ISEPClient(self.id, self.network)
 
         # self.sparta_communicator = SpartacusCommunicator(id, self.config)
