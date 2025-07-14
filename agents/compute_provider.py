@@ -13,7 +13,10 @@ from infra.network_adapter import NetworkAdapter
 class ComputeProvider:
     def __init__(self, config):
         self.id = config["node_id"]
-        self.base_model = BaseModel(config["base_model"], config["sys_prompt"])
+        if config["base_model"] is "test":
+            self.base_model = None
+        else:
+            self.base_model = BaseModel(config["base_model"], config["sys_prompt"])
         self.lora = LoRAAdapter(self.base_model)
         self.capabilities = config["capabilities"]
         self.memory = LocalMemory()

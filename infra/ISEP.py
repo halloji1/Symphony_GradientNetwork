@@ -1,7 +1,9 @@
+# ISEP.py
 from typing import Dict, List, Optional
 from uuid import uuid4
 import time
 from threading import Timer
+from queue import Queue
 
 from protocol.beacon import Beacon
 from protocol.response import BeaconResponse
@@ -17,6 +19,7 @@ class ISEPClient:
         self.network = network_adapter
         self.response_timeout = response_timeout
         self.pending_tasks: Dict[str, List[BeaconResponse]] = {}  # task_id -> responses
+        self.beacon_queue = Queue()  # 新增：用于存储接收到的Beacon消息
         
         # 注册消息处理器
         self.network.register_handler("beacon", self._handle_beacon)
@@ -80,6 +83,8 @@ class ISEPClient:
         """处理接收到的Beacon消息"""
         # 转发给其他节点（简化：直接转发）
         self.network.broadcast("beacon", beacon, exclude=[sender_id])
+        # 新增：将接收到的Beacon消息放入队列
+        self.beacon_queue.put((sender_id, beacon))
     
     def _handle_beacon_response(self, sender_id: str, response: BeaconResponse):
         """处理接收到的Beacon响应"""
@@ -97,3 +102,10 @@ class ISEPClient:
             # 这里可以触发回调通知TaskRequester响应收集完成
             print(f"任务 {task_id} 的响应收集已完成")
             # self.pending_tasks.pop(task_id)  # 实际应在TaskRequester读取后删除
+
+    def receive_beacon(self, timeout=None):
+        """从队列中获取接收到的Beacon消息"""
+        try:
+            return self.beacon_queue.get(timeout=timeout)
+        except Exception:
+            return None, None

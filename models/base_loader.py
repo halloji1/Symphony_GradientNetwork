@@ -26,6 +26,7 @@ class BaseModel:
         json_end = result.rfind('}') + 1
         try:
             structured = result[json_start:json_end]
+            print(structured)
             import json
             dag_dict = json.loads(structured)
             steps = [SubTask(s["id"], s["desc"]) for s in dag_dict.get("steps", [])]

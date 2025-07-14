@@ -6,7 +6,7 @@ role: "task_requester"            # 可选: task_requester / compute_provider / 
 node_id: "agent-001"
 
 # 模型加载配置
-base_model: "tinyllama"
+base_model: "test"
 load_quantized: true
 use_lora: true
 
