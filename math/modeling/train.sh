@@ -1,9 +1,21 @@
-CUDA_VISIBLE_DEVICES=0 python -u tune_gpt.py \
-  --arch=gpt2-large \
+# CUDA_VISIBLE_DEVICES=0 python -u tune_gpt.py \
+#   --arch=gpt2-large \
+#   --MATH-dataroot=./MATH/train/*/*.json \
+#   --epochs=20 \
+#   --lr=5e-5 \
+#   --batch-size-per-replica=4 \
+#   --grad-acc-steps=4 \
+#   --save-dir=./checkpoints/math_gpt2_large_final \
+#   --log-freq=10 > ./log/log_train.txt 2>&1
+
+export CUDA_VISIBLE_DEVICES=0,1,2,3 
+export OMP_NUM_THREADS=4
+torchrun --nproc_per_node=4 tune_gpt.py \
+  --arch=gpt2-medium \
   --MATH-dataroot=./MATH/train/*/*.json \
   --epochs=20 \
   --lr=5e-5 \
-  --batch-size-per-replica=4 \
+  --batch-size-per-replica=2 \
   --grad-acc-steps=4 \
   --save-dir=./checkpoints/math_gpt2_large_final \
   --log-freq=10 > ./log/log_train.txt 2>&1
