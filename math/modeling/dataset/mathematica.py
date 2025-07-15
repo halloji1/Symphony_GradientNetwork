@@ -39,6 +39,7 @@ class MathematicaMathDataset(BaseMathDataset):
         samples_raw = []
         for fname in tqdm(all_filenames):
             fname = fname.rstrip()
+            print('os.path.dirname(os.path.dirname(self.dataroot))', os.path.dirname(os.path.dirname(self.dataroot)))
             fname = os.path.join(os.path.dirname(os.path.dirname(self.dataroot)), fname[2:])
             if not os.path.isfile(fname):
                 print(f"SKIPPING {fname}")

@@ -355,7 +355,13 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Language Modelling on Code")
-    parser.add_argument('--arch', default='gpt2', choices=transformers.GPT2_PRETRAINED_MODEL_ARCHIVE_LIST)
+    parser.add_argument('--arch', default='gpt2', choices=[
+        'gpt2',
+        'gpt2-medium',
+        'gpt2-large',
+        'gpt2-xl',
+        'distilgpt2'
+    ])
     parser.add_argument('--load', default=None, type=str)
     parser.add_argument('--num-beams', default=20, type=int)
     parser.add_argument('--tokenizer-merges-file', default=None, type=str)

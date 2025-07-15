@@ -29,6 +29,13 @@ from dataset.khan_academy import KhanAcademyMathDataset
 from dataset.mathematica import MathematicaMathDataset
 from dataset.mathematica_with_steps import MathematicaWithStepsMathDataset
 
+from transformers import TrainerCallback
+
+class CustomTensorBoardCallback(TrainerCallback):
+    def on_log(self, args, state, control, logs=None, **kwargs):
+        if logs is not None:
+            print(f"[CustomCallback] Step {state.global_step}: {logs}")
+            
 def run_training(args, train_data):
     
     if not args.save_steps:
@@ -73,8 +80,8 @@ def run_training(args, train_data):
         do_train=True,
         do_eval=False,
         do_predict=True,
-        evaluation_strategy='no',
-        eval_steps=0, 
+        # evaluation_strategy='no',
+        # eval_steps=0, 
 
         num_train_epochs=args.epochs,
         per_device_train_batch_size=args.batch_size_per_replica,
@@ -82,7 +89,8 @@ def run_training(args, train_data):
 
         learning_rate=args.lr,
         weight_decay=args.weight_decay,
-        warmup_steps=args.lr_warmup_steps,
+        warmup_steps=0,#args.lr_warmup_steps,
+        warmup_ratio=0.1,
         max_grad_norm=100000.0, # Essentially disable gradient clipping
 
         logging_dir=args.save_dir, 
@@ -276,7 +284,13 @@ def main():
     ######### Arg parsing ###############################################################
 
     parser = argparse.ArgumentParser(description="Language Modelling on Code")
-    parser.add_argument('--arch', default='gpt2', choices=transformers.GPT2_PRETRAINED_MODEL_ARCHIVE_LIST)
+    parser.add_argument('--arch', default='gpt2', choices=[
+        'gpt2',
+        'gpt2-medium',
+        'gpt2-large',
+        'gpt2-xl',
+        'distilgpt2'
+    ])
     parser.add_argument('--tokenizer-merges-file', default=None, type=str)
     parser.add_argument('--load', default=None, type=str)
 

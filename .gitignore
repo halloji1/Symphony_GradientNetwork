@@ -1,2 +1,9 @@
-core/__pycache__/
-runtime/__pycache__/
+/__pycache__/
+*.zip
+*/MATH/*
+*.txt
+*.json
+math/modeling/checkpoints/
+*/log/
+*.egg-info
+*.pyc

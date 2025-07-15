@@ -1,0 +1,9 @@
+CUDA_VISIBLE_DEVICES=0 python -u tune_gpt.py \
+  --arch=gpt2-large \
+  --MATH-dataroot=./MATH/train/*/*.json \
+  --epochs=20 \
+  --lr=5e-5 \
+  --batch-size-per-replica=4 \
+  --grad-acc-steps=4 \
+  --save-dir=./checkpoints/math_gpt2_large_final \
+  --log-freq=10 > ./log/log_train.txt 2>&1
