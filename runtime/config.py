@@ -12,6 +12,7 @@ DEFAULT_CONFIG = {
 
     # 模型加载配置
     "base_model": "default_model",
+    "sys_prompt": "",
     "load_quantized": False,
     "use_lora": False,
 
@@ -39,7 +40,13 @@ DEFAULT_CONFIG = {
     "network": {
         "host": "213.192.2.94",
         "port": 8000
-    }
+    },
+
+    # GPU 配置
+    "gpu_ids": [0],
+
+    # neighbours
+    "neighbours": [["agent-002", "127.0.0.1", 8000]]
 }
 
 def load_config_from_file(filepath: str) -> dict:

@@ -48,7 +48,7 @@ class NetworkAdapter:
                 "sender_id": self.node_id,
                 "target_id": target_id,
                 "msg_type": msg_type,
-                "data": self._serialize_data(data),
+                "data": data.to_dict(),
                 "timestamp": time.time()
             }
             
@@ -130,7 +130,7 @@ class NetworkAdapter:
         msg_type = message.get("msg_type")
         sender_id = message.get("sender_id")
         data = message.get("data")
-        
+
         if not msg_type or not sender_id or data is None:
             print(f"无效消息格式: {message}")
             return

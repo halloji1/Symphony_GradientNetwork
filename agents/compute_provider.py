@@ -6,6 +6,7 @@ from core.capability import CapabilityManager
 from core.memory import LocalMemory
 from protocol.lora_patch import LoRAPatch
 from infra.sparta_communicator import SpartacusCommunicator
+from protocol.task_contract import TaskContract, TaskResult
 from typing import Dict
 from infra.ISEP import ISEPClient
 from infra.network_adapter import NetworkAdapter
@@ -13,15 +14,21 @@ from infra.network_adapter import NetworkAdapter
 class ComputeProvider:
     def __init__(self, config):
         self.id = config["node_id"]
-        if config["base_model"] is "test":
+        self.gpu_id = config.get("gpu_id", 0)
+        self.sys_prompt = config["sys_prompt"]
+        if config["base_model"] == "test":
             self.base_model = None
         else:
-            self.base_model = BaseModel(config["base_model"], config["sys_prompt"])
-        self.lora = LoRAAdapter(self.base_model)
+            self.base_model = BaseModel(config["base_model"], config["sys_prompt"], device=f"cuda:{self.gpu_id}")
+            self.lora = LoRAAdapter(self.base_model)
         self.capabilities = config["capabilities"]
         self.memory = LocalMemory()
+        self.capab_manager = CapabilityManager(self.capabilities)
         self.network = NetworkAdapter(self.id, config)
         self.ise = ISEPClient(self.id, self.network)
+        
+        for neighbor in config["neighbours"]:
+            self.network.add_neighbor(neighbor[0], neighbor[1], int(neighbor[2]))
 
         # self.sparta_communicator = SpartacusCommunicator(id, self.config)
         # self.sparta_communicator.register_callback(self._handle_received_patch)
@@ -31,27 +38,45 @@ class ComputeProvider:
 
     def handle_beacon(self, sender_id: str, beacon: Beacon):
         # 计算能力得分
-        score = self.capab_manager.match(beacon.requirement)
+        score = self.capab_manager.match(beacon["requirement"])
         # 创建 BeaconResponse
-        response = BeaconResponse(self.id, self.capab_manager.capabilities, match_score=score)
+        response = BeaconResponse(self.id, beacon["task_id"], match_score=score)
         # 发送响应
         self.ise.send_response(sender_id, "beacon_response", response)
 
-    def execute(self, subtask):
+    def execute(self, subtask: TaskContract):
         """
         调用本地模型完成子任务
         """
         try:
             # 提取任务描述
-            task_description = subtask.get("desc")
+            instruction = subtask["instructions"]
+            previous_results = subtask["previous_results"]
+            pres = " ".join(previous_results)
+            decomposed = subtask["decomposed"]
+            if decomposed:
+                task_description = f"{self.sys_prompt}\nBackground information include: \"{pres}\". Based on the background information, solve the sub-task: \"{instruction}\". Provide the final answer formatted as $\\boxed{{<Answer>}}$. Do not provide additional explanations or code."
+            else:
+                task_description = f"{instruction}. Provide the final answer formatted as $\\boxed{{<Answer>}}$. Do not provide additional explanations or code."
+            # print(task_description)
+
             if not task_description:
                 raise ValueError("Task description is missing in task data.")
 
             # 调用本地模型生成结果
-            result = self.base_model.generate(task_description)
+            raw_result = self.base_model.generate(task_description)
 
-            # 存储结果到本地内存
-            self.memory.store_result({"task": subtask, "result": result})
+            pos = raw_result.find("DO NOT")
+            if pos!=-1:
+                raw_result = raw_result[:pos].strip()
+
+            if decomposed:
+                result = raw_result.split("Output:")[1].strip()
+            else:
+                result = raw_result
+
+            # # 存储结果到本地内存
+            # self.memory.store_result({"task": subtask, "result": result})
 
             return result
         except Exception as e:
