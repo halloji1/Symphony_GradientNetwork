@@ -6,7 +6,7 @@ from threading import Timer
 from queue import Queue
 from protocol.beacon import Beacon
 from protocol.response import BeaconResponse
-from protocol.task_contract import TaskContract, TaskResult
+from protocol.task_contract import TaskContract, TaskResult, Task
 from protocol.task_contract import TaskDAG, SubTask
 from infra.network_adapter import NetworkAdapter
 
@@ -54,19 +54,9 @@ class ISEPClient:
     def send_response(self, target_id, msg_type, response):
         self.network.send(target_id, msg_type, response)
     
-    def delegate_task(self, executor_id: str, subtask: SubTask) -> str:
+    def delegate_task(self, executor_id: str, task: Task) -> str:
         """委派子任务给执行者"""
-        contract = TaskContract(
-            task_id=subtask.id,
-            assigned_to=executor_id,
-            original_problem=subtask.original_problem,
-            previous_results=subtask.previous_results,
-            instructions=subtask.instructions,
-            decomposed=subtask.decomposed
-        )
-        
-        # 发送任务合同
-        self.network.send(executor_id, "task_contract", contract)
+        self.network.send(executor_id, "task", task)
     
     def submit_result(self, target_id, result):
         """提交任务结果"""
@@ -83,8 +73,6 @@ class ISEPClient:
     
     def _handle_beacon(self, sender_id: str, beacon: Beacon):
         """处理接收到的Beacon消息"""
-        # # 转发给其他节点（简化：直接转发）
-        # self.network.broadcast("beacon", beacon, exclude=[sender_id])
         # 新增：将接收到的Beacon消息放入队列
         self.beacon_queue.put((sender_id, "beacon", beacon))
     

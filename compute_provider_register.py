@@ -75,6 +75,7 @@ class ComputeProviderRunner:
                     if subtask["original_problem"]!="":
                         subtask["instructions"] = subtask["original_problem"]
                     result = self.provider.execute(subtask)
+                    print(subtask["previous_results"])
                     print(result)
                 
                     requester_id = self.provider.ise.requester_id

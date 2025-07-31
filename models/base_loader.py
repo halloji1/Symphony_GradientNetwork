@@ -42,13 +42,9 @@ class BaseModel:
             )
         generated_tokens = outputs[0][prompt_length:]
         return self.tokenizer.decode(generated_tokens, skip_special_tokens=True)
-    
-    # def generate(self, user_input: str, max_new_tokens: int = 256, temperature: float = 0.7) -> str:
-    #     prompt = self.system_prompt + user_input.strip()
-    #     result = self.pipeline(prompt, max_new_tokens=max_new_tokens, temperature=temperature, do_sample=True, num_return_sequences=1)
-    #     return result[0]['generated_text'][len(prompt):].strip()
 
-    def generate_task_dag(self, task_background: str, task_question: str, user_input: str, requirement: str) -> TaskDAG:
+
+    def generate_task_dag(self, task_background: str, task_question: str, user_input: str, requirement: str) -> List:
         prompt = f"""
 You are a problem decomposer, not a solver. Your task is to break down a complex math or logic problem into a sequence of strictly computable sub-questions. Each sub-question must represent a well-defined, executable step toward solving the original problem.
 
@@ -118,23 +114,79 @@ Input:
             result = raw_result.split("Output:")[1].strip()
             result = result.replace('\\', '\\\\')
             dag_dict = json.loads(result)
-            steps = [SubTask(id=str(index+1), 
-                                requirement=requirement, 
-                                original_problem=task_question, 
-                                previous_results=[task_background], 
-                                instructions=s,
-                                decomposed=True) for index, s in enumerate(dag_dict.get("subtasks", []))]
-            if len(steps) <= 2:
-                print("This task do not need decomposition")
-                steps = steps = [SubTask(id=str(1),
-                                requirement=requirement,
-                                original_problem="",
-                                previous_results=[],
-                                instructions=user_input,
-                                decomposed=False)]
-            dependencies = []
-            for step in steps:
-                print(step.id, step.requirement, step.instructions)
-            return TaskDAG(steps, dependencies), True
+            steps = {}
+            for index, s in enumerate(dag_dict.get("subtasks", [])):
+                steps[str(index+1)] = [s, requirement]
+
+            for subtask_id in steps:
+                print(steps[subtask_id])
+
+            return steps, True
         except:
-            return TaskDAG([],[]), False
+            return {}, False
+    
+
+    def extract_task(self, user_input):
+        prompt = f"""You are a text extractor. Your task is ONLY to separate the background information from the question in math problem statements.
+
+Each input contains:
+- Background: context, assumptions, formulas, constraints, and setup.
+- Question: the final sentence or phrase that asks what needs to be found, calculated, or determined.
+
+⚠️ IMPORTANT RULES:
+- DO NOT solve or explain anything.
+- DO NOT rewrite or infer any missing values.
+- DO NOT modify, simplify, or expand any math expressions.
+- DO NOT perform any calculations.
+- DO NOT guess or assume anything.
+- Only CUT the question part from the background and return both.
+
+If the question comes after a comma, move everything after that comma to the "question".
+
+Return your output in the following strict JSON format:
+{{
+  "background": "<only the setup or context>",
+  "question": "<only the question sentence>"
+}}
+
+---
+
+Example:
+
+Input:
+The perimeter of a rectangle is 24 inches. What is the number of square inches in the maximum possible area for this rectangle?
+
+Output:
+{{
+  "background": "The perimeter of a rectangle is 24 inches.",
+  "question": "What is the number of square inches in the maximum possible area for this rectangle?"
+}}
+
+---
+
+Input:
+If $A=2+i$, $O=-4$, $P=-i$, and $S=2+4i$, find $A-O+P+S$.
+
+Output:
+{{
+  "background": "If $A=2+i$, $O=-4$, $P=-i$, and $S=2+4i$.",
+  "question": "Find $A-O+P+S$"
+}}
+
+---
+
+Now extract background and question from the following input.
+Remember: do NOT solve the problem. Only extract.
+
+Input:
+{user_input}
+"""
+
+        result = self.generate(prompt)
+        try:
+            json_str = result.split("Output:")[1].strip()
+            json_str = json_str.replace('\\', '\\\\')
+            data = json.loads(json_str)
+            return data["background"], data["question"], True
+        except:
+            return "", "", False

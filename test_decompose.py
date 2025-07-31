@@ -111,12 +111,7 @@ if __name__ == "__main__":
     # 启动运行器
     runner = TaskRequesterRunner(config_path)
     runner.start()
-    runner.answers = []
-    runner.solve_problems("/workspace/Symphony_GradientNetwork/tasks.json", "/workspace/Symphony_GradientNetwork/test_data")
-
-    try:
-        while True:
-            time.sleep(1)  # 持续运行，等待结果监听
-    except KeyboardInterrupt:
-        print("程序被手动终止")
-        runner.running = False  # 停止守护线程的循环
+    
+    task_description = ""
+    task_background, task_question, con_1 = runner.requester.extract_task(task_description)
+    task_dag, con_2 = runner.requester.decompose_task(task_background, task_question, task_description, "math")
