@@ -200,7 +200,7 @@ class TaskDAG:
             print(f"  {src} -> {dst}")
 
 class Task:
-    def __init__(self, subtask_id: int, steps: Dict, previous_results: List, original_problem: str, final_result: str, user_id: str)
+    def __init__(self, subtask_id: int, steps: Dict, previous_results: List, original_problem: str, final_result: str, user_id: str):
         """
         初始化Task类
         subtask_id: 当前子任务的序号

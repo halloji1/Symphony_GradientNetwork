@@ -6,6 +6,7 @@ import torch
 import re
 import json
 import regex
+from typing import Dict, Any, List, Tuple
 
 class BaseModel:
     def __init__(self, model_path: str, system_prompt: str = "", device: str = None):

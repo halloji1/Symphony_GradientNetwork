@@ -38,10 +38,11 @@ class Agent:
                 steps, con_2 = self.base_model.generate_task_dag(task_background, task_question, user_input, "math")
                 if con_2:
                     task["steps"] = steps
-            
-            return task
+                    print(task["steps"])
+            task["subtask_id"] += 1
+            return Task.from_dict(task)
         else:  # execute subtask
-            instruction = task["steps"][task["subtask_id"]][0]
+            instruction = task["steps"][str(task["subtask_id"])][0]
             previous_results = task["previous_results"]
             pres = " ".join(previous_results)
             task_description = f"{self.sys_prompt}\nBackground information include: \"{pres}\". Based on the background information, solve the sub-task: \"{instruction}\". Provide the final answer formatted as $\\boxed{{<Answer>}}$. Do not provide additional explanations or code."
@@ -58,20 +59,26 @@ class Agent:
             if task["subtask_id"] == len(task["steps"]):
                 task["final_result"] = result
             task["subtask_id"] += 1
-            return task
+            return Task.from_dict(task)
     
     def assign_task(self, task: Task):
-        beacon = Beacon(sender=self.id, task_id=task.subtask_id, requirement=task.steps[task.subtask_id][1], ttl=2)
+        beacon = Beacon(sender=self.id, task_id=str(task.subtask_id), requirement=task.steps[str(task.subtask_id)][1], ttl=2)
         candidates = self.ise.broadcast_and_collect(beacon)
-        if task.subtask_id == 0:
-            best_matches = self.select_executor(candidates, 3)
-        else:
-            best_matches = self.select_executor(candidates, 1)
+        best_matches = self.select_executor(candidates, 1)
+        print(best_matches)
         
         for match in best_matches:
-            self.ise.delegate_task(match, task)
+            self.ise.delegate_task(match[0], task)
     
     def select_executor(self, candidates, num):
+        candidates = sorted(candidates, key=lambda x: x[1], reverse=True)
+        for i in range(len(candidates)):
+            candidate = candidates[i]
+            if candidate[0] == self.id:
+                if candidate[1] == candidates[0][1]:
+                    candidates[i] = candidates[0]
+                    candidates[0] = candidate
+                    break
         return candidates[:num]
     
     def handle_beacon(self, sender_id: str, beacon: Beacon):

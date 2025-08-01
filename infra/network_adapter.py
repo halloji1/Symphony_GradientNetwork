@@ -128,6 +128,7 @@ class NetworkAdapter:
     def _handle_message(self, message):
         """处理接收到的消息"""
         msg_type = message.get("msg_type")
+        print(msg_type)
         sender_id = message.get("sender_id")
         data = message.get("data")
 

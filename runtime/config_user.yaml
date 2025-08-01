@@ -2,8 +2,8 @@
 
 # 基础配置
 debug: true
-role: "task_requester"            # 可选: task_requester / compute_provider / reward_provider / NAP
-node_id: "agent-001"
+role: "user"         
+node_id: "user-001"
 
 # 模型加载配置
 base_model: "/workspace/deepseek-math-7b-instruct"
@@ -41,4 +41,6 @@ network:
 gpu_id: 0  # 假设服务器有4个GPU卡
 
 # neighbours
-neighbours: [["agent-002", "127.0.0.1", 5000]]
+neighbours: [["agent-001", "127.0.0.1", 5000],
+             ["agent-002", "127.0.0.1", 6000],
+             ["agent-003", "127.0.0.1", 7000]]

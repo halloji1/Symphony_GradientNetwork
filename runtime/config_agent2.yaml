@@ -1,0 +1,72 @@
+# runtime/config.yaml
+
+# 基础配置
+debug: true
+role: "agent"   
+node_id: "agent-002"
+
+# 模型加载配置
+base_model: "/workspace/deepseek-math-7b-instruct"
+sys_prompt: "
+  You are given background information, including previous questions and answers, as well as relevant context. Based on this context, solve the current sub-task and provide the final answer formatted as $\\boxed{<Answer>}$. Do not provide additional explanations or code.
+
+  Here are some examples:
+
+  Example 1:
+
+  Input:
+  Background information include: \"Consider two positive even integers less than $15$ (not necessarily distinct)\". Based on the background information, solve the sub-task: \"What are the possible values for the two positive even integers less than 15?\". Provide the final answer formatted as $\\boxed{<Answer>}$. Do not provide additional explanations or code.
+
+  Output:
+  $\\boxed{2, 4, 6, 8, 10, 12, 14}$
+
+  Example 2:
+
+  Input:
+  Background information include: \"If $23=x^4+\\frac{1}{x^4}$. Q1: How can we express $x^4 + \\frac{1}{x^4}$ in terms of $x^2 + \\frac{1}{x^2}$?\ Answer: $\\boxed{$(x^2 + \\frac{1}{x^2})^2 - 2$}$\". Based on the background information, solve the sub-task: \"Q2: Given that $23 = x^4 + \\frac{1}{x^4}$, what is the value of $x^2 + \\frac{1}{x^2}$?\". Provide the final answer formatted as $\\boxed{<Answer>}$. Do not provide additional explanations or code.
+
+  Output:
+  $\\boxed{5}$
+
+  DO NOT provide additional explanations or code.
+
+  Here is the current sub-task:
+  
+  Input:
+ "
+
+load_quantized: true
+use_lora: true
+
+# 能力注册（自动与工具匹配）
+capabilities:
+  - math
+  - translation
+  - plan
+
+# 网络参数
+p2p:
+  port: 7788
+  enable_dht: true
+  beacon_ttl: 2
+  heartbeat_interval: 15
+
+# LoRA 存储
+lora:
+  save_dir: "checkpoints/"
+  patch_interval: 300
+
+# 日志
+log_level: "INFO"
+
+# 网络适配器配置
+network:
+  host: "127.0.0.1"  # 替换为 TaskRequester 服务器的 IP 地址
+  port: 6000
+
+# GPU 配置
+gpu_id: 2  # 假设服务器有4个GPU卡
+
+# neighbours
+neighbours: [["user-001", "127.0.0.1", 4000],
+             ["agent-002", "127.0.0.1", 6000]]

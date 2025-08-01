@@ -28,7 +28,7 @@ class ISEPClient:
         self.network.register_handler("beacon", self._handle_beacon)
         self.network.register_handler("beacon_response", self._handle_beacon_response)
         self.network.register_handler("task_allocation", self._handle_task_allocation)
-        self.network.register_handler("task_contract", self._handle_task)
+        self.network.register_handler("task", self._handle_task)
         self.network.register_handler("task_result", self._handle_task_result)
     
     def broadcast_and_collect(self, beacon: Beacon) -> List[BeaconResponse]:
@@ -86,10 +86,10 @@ class ISEPClient:
         self.requester_id = requester_id
         self.task_allocation = task_allocation
 
-    def _handle_task(self, sender_id: str, task: TaskContract):
+    def _handle_task(self, sender_id: str, task: Task):
         """处理接收到的Beacon消息"""
         # 新增：将接收到的task消息放入队列
-        self.subtask_queue.put((sender_id, "subtask", task))
+        self.subtask_queue.put((sender_id, "task", task))
     
     def _handle_task_result(self, sender_id: str, result: TaskResult):
         """处理接收到的任务结果"""
