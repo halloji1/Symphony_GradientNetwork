@@ -7,42 +7,26 @@ import re
 import json
 import regex
 from typing import Dict, Any, List, Tuple
+from vllm import LLM, SamplingParams
 
 class BaseModel:
     def __init__(self, model_path: str, system_prompt: str = "", device: str = None):
         self.device = device
         self.model_path = model_path
-        bnb_config = BitsAndBytesConfig(
-                load_in_8bit=True,
-                llm_int8_threshold=6.0,
-                llm_int8_skip_modules=None
-            )
-        self.tokenizer = AutoTokenizer.from_pretrained(model_path)
-        self.model = AutoModelForCausalLM.from_pretrained(
-                model_path,
-                quantization_config=bnb_config,
-                torch_dtype=torch.float16,
-                device_map=self.device
-            )
-        # self.model.to(self.device)
+        
+        self.llm = LLM(model=model_path)
         print("Running on ", device)
         self.system_prompt = system_prompt.strip() + "\n" if system_prompt else ""
-        # self.pipeline = pipeline("text-generation", model=self.model, tokenizer=self.tokenizer, device=0 if self.device == "cuda" else -1)
+        
 
     def generate(self, prompt, max_new_tokens=512, temperature=0.5, top_p=0.9):
-        prompt_inputs = self.tokenizer(prompt, return_tensors="pt")
-        prompt_length = prompt_inputs.input_ids.shape[1]  # 获取prompt的token长度
-        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
-        with torch.no_grad():
-            outputs = self.model.generate(
-                **inputs,
-                max_new_tokens=max_new_tokens,
-                temperature=temperature,
-                top_p=top_p,
-                do_sample=True
-            )
-        generated_tokens = outputs[0][prompt_length:]
-        return self.tokenizer.decode(generated_tokens, skip_special_tokens=True)
+        sampling_params = SamplingParams(
+            temperature=temperature,
+            top_p=top_p,
+            max_tokens=max_new_tokens,
+        )
+        outputs = self.llm.generate(prompt, sampling_params)
+        return outputs[0].outputs[0].text.strip()
 
 
     def generate_task_dag(self, task_background: str, task_question: str, user_input: str, requirement: str) -> List:
