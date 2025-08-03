@@ -16,6 +16,8 @@ class AgentRunner:
 
         self.beacon_enabled = threading.Event()  # 控制Beacon监听
         self.beacon_enabled.set()  # 初始允许监听
+
+        self.first_task_received = False
     
     def start(self):
         """启动监听和运行循环"""
@@ -52,24 +54,45 @@ class AgentRunner:
     def _listen_tasks(self):
         """持续监听任务并调用原类execute执行"""
         while self.running:
-            sender_id, msg_type, task = self.agent.ise.receive_task(timeout=1)
-            if msg_type=="task":
-                print(f"\n[任务] 收到来自 {sender_id} 的子任务")
-                # 暂停Beacon监听
-                print("[控制] 暂停Beacon监听")
-                self.beacon_enabled.clear()
-                new_task = self.agent.execute(task)
-                if new_task.subtask_id == len(new_task.steps)+1: # final result
-                    final_result = new_task.final_result
-                    print(final_result)
-                    print("发送result给", new_task.user_id)
-                    self.agent.ise.submit_result(new_task.user_id, final_result)
-                else:         
-                    print("[控制] 恢复Beacon监听")
-                    self.beacon_enabled.set()
-                    self.agent.assign_task(new_task) # intermediate steps
-                # 恢复Beacon监听
-            time.sleep(0.5)  # 避免CPU空转
+            try:
+                sender_id, msg_type, task = self.agent.ise.receive_task(timeout=1)
+                if msg_type == "task":
+                    print(f"\n[任务] 收到来自 {sender_id} 的子任务")
+
+                    if not self.first_task_received:
+                        # 第一次接收到任务，开始执行
+                        self.first_task_received = True
+
+                        print("[控制] 暂停Beacon监听")
+                        self.beacon_enabled.clear()
+
+                        new_task = self.agent.execute(task)
+
+                        if new_task.subtask_id == len(new_task.steps) + 1:  # Final result
+                            final_result = new_task.final_result
+                            print(final_result)
+                            print("发送result给", new_task.user_id)
+                            self.agent.ise.submit_result(new_task.user_id, final_result)
+
+                            # 当前任务结束，恢复正常
+                            print("[控制] 恢复Beacon监听")
+                            self.beacon_enabled.set()
+                            self.first_task_received = False
+                        else:
+                            print("[控制] 恢复Beacon监听")
+                            self.beacon_enabled.set()
+                            self.first_task_received = False
+                            self.agent.assign_task(new_task)  # Intermediate steps
+
+                    else:
+                        # 已有任务正在执行，转发收到的新任务
+                        print(f"[中继] 当前已有任务 {self.current_task_id} 正在执行，将收到的新任务转发")
+                        self.agent.assign_task(task)
+
+            except Exception as e:
+                if self.running:
+                    print(f"[任务监听错误] {str(e)}")
+            time.sleep(0.5)
     
     def _wait_for_stop(self):
         """等待用户输入停止命令"""
