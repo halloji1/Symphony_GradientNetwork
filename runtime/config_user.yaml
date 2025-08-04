@@ -41,5 +41,4 @@ network:
 gpu_id: 0  # 假设服务器有4个GPU卡
 
 # neighbours
-neighbours: [["agent-001", "127.0.0.1", 5000],
-             ["agent-002", "127.0.0.1", 6000]]
+neighbours: [["agent-001", "127.0.0.1", 5000]]

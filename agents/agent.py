@@ -4,10 +4,7 @@ from protocol.response import BeaconResponse
 from models.lora_manager import LoRAAdapter
 from core.capability import CapabilityManager
 from core.memory import LocalMemory
-from protocol.lora_patch import LoRAPatch
-from infra.sparta_communicator import SpartacusCommunicator
-from protocol.task_contract import TaskContract, TaskResult, Task
-from typing import Dict
+from protocol.task_contract import TaskResult, Task
 from infra.ISEP import ISEPClient
 from infra.network_adapter import NetworkAdapter
 

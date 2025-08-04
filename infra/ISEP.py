@@ -1,13 +1,10 @@
 # ISEP.py
 from typing import Dict, List, Optional
-from uuid import uuid4
 import time
-from threading import Timer
 from queue import Queue
 from protocol.beacon import Beacon
 from protocol.response import BeaconResponse
-from protocol.task_contract import TaskContract, TaskResult, Task
-from protocol.task_contract import TaskDAG, SubTask
+from protocol.task_contract import TaskResult, Task
 from infra.network_adapter import NetworkAdapter
 
 class ISEPClient:
