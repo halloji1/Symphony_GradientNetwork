@@ -1,7 +1,6 @@
 import time
 import threading
 from runtime.config import load_config_from_file
-from protocol.task_contract import TaskResult, SubTask, Task
 from agents.user import User
 import argparse
 import regex
