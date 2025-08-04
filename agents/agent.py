@@ -15,7 +15,7 @@ class Agent:
         if config["base_model"] == "test":
             self.base_model = None
         else:
-            self.base_model = BaseModel(config["base_model"], config["sys_prompt"], device=f"cuda:{self.gpu_id}")x
+            self.base_model = BaseModel(config["base_model"], config["sys_prompt"], device=f"cuda:{self.gpu_id}")
         self.capabilities = config["capabilities"]
         self.memory = LocalMemory()
         self.capab_manager = CapabilityManager(self.capabilities)
