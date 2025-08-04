@@ -80,7 +80,7 @@ class UserRunner:
         self.result_event.wait()
         timer.cancel()
 
-        return self.final_result
+        return self.final_result, self.full_answers
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
