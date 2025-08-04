@@ -17,6 +17,7 @@ class UserRunner:
         self.running = False  # 运行状态标志
 
         self.answers = []
+        self.full_answers = []
         self.result_event = threading.Event()
         self.lock = threading.Lock()  # 用于多线程安全添加结果
         self.final_result = ""
@@ -41,11 +42,15 @@ class UserRunner:
                     
                     with self.lock:
                         self.answers.append(answer)
+                        self.full_answers.append(result['previous_results'])
                         print(f"[Result] 当前收到 {len(self.answers)} 个答案")
 
                         if len(self.answers) >= self.cot_num:
                             self.final_result = self._vote_results()
                             print(f"\n✅ [Voting Result] 最终表决输出：{self.final_result}")
+                            print("所有的COT如下：")
+                            for x in self.full_answers:
+                                print(x)
                             self.result_event.set()
 
             except Exception as e:

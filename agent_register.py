@@ -108,7 +108,7 @@ class AgentRunner:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config_num", type=int, default=1, help="需要投票的 CoT 答案数")
+    parser.add_argument("--config_num", type=int, default=1, help="config文件名")
     args = parser.parse_args()
     config_num = args.config_num
 
