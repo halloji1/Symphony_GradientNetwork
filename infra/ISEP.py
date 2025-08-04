@@ -27,7 +27,6 @@ class ISEPClient:
         # 注册消息处理器
         self.network.register_handler("beacon", self._handle_beacon)
         self.network.register_handler("beacon_response", self._handle_beacon_response)
-        self.network.register_handler("task_allocation", self._handle_task_allocation)
         self.network.register_handler("task", self._handle_task)
         self.network.register_handler("task_result", self._handle_task_result)
     
@@ -58,14 +57,15 @@ class ISEPClient:
         """委派子任务给执行者"""
         self.network.send(executor_id, "task", task)
     
-    def submit_result(self, target_id, result):
+    def submit_result(self, target_id, result, previous_results):
         """提交任务结果"""
         # 查找任务ID（实际实现需要维护合同ID到任务ID的映射）
         
         result = TaskResult(
             target_id=target_id,
             executer_id=self.node_id,
-            result=result
+            result=result,
+            previous_results=previous_results
         )
         
         # 发送结果（需要知道任务分配者的ID）
@@ -80,11 +80,6 @@ class ISEPClient:
         """处理接收到的Beacon响应"""
         self.pending_tasks[response["task_id"]].append(response)
 
-    def _handle_task_allocation(self, requester_id: str, task_allocation):
-        """处理接收到的Task Allocation消息"""
-        print("receive task allocation frm ", requester_id)
-        self.requester_id = requester_id
-        self.task_allocation = task_allocation
 
     def _handle_task(self, sender_id: str, task: Task):
         """处理接收到的Beacon消息"""

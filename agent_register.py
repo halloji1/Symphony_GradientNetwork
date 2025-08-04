@@ -70,9 +70,10 @@ class AgentRunner:
 
                         if new_task.subtask_id == len(new_task.steps) + 1:  # Final result
                             final_result = new_task.final_result
+                            previous_results = new_task.previous_results
                             print(final_result)
                             print("发送result给", new_task.user_id)
-                            self.agent.ise.submit_result(new_task.user_id, final_result)
+                            self.agent.ise.submit_result(new_task.user_id, final_result, previous_results)
 
                             # 当前任务结束，恢复正常
                             print("[控制] 恢复Beacon监听")
