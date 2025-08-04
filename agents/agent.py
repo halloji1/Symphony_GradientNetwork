@@ -1,7 +1,6 @@
 from models.base_loader import BaseModel
 from protocol.beacon import Beacon
 from protocol.response import BeaconResponse
-from models.lora_manager import LoRAAdapter
 from core.capability import CapabilityManager
 from core.memory import LocalMemory
 from protocol.task_contract import TaskResult, Task
@@ -16,8 +15,7 @@ class Agent:
         if config["base_model"] == "test":
             self.base_model = None
         else:
-            self.base_model = BaseModel(config["base_model"], config["sys_prompt"], device=f"cuda:{self.gpu_id}")
-            self.lora = LoRAAdapter(self.base_model)
+            self.base_model = BaseModel(config["base_model"], config["sys_prompt"], device=f"cuda:{self.gpu_id}")x
         self.capabilities = config["capabilities"]
         self.memory = LocalMemory()
         self.capab_manager = CapabilityManager(self.capabilities)
