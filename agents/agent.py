@@ -43,10 +43,6 @@ class Agent:
             task_description = f"{self.sys_prompt}\nBackground information include: \"{pres}\". Based on the background information, solve the sub-task: \"{instruction}\". Provide the final answer formatted as $\\boxed{{<Answer>}}$. Do not provide additional explanations or code."
             
             raw_result = self.base_model.generate(task_description)
-            
-            pos = raw_result.find("DO NOT")
-            if pos!=-1:
-                raw_result = raw_result[:pos].strip()
 
             result = raw_result.split("Output:")[1].strip()
             
