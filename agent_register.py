@@ -92,6 +92,9 @@ class AgentRunner:
             except Exception as e:
                 if self.running:
                     print(f"[任务监听错误] {str(e)}")
+                    print("[控制] 恢复Beacon监听")
+                    self.beacon_enabled.set()
+                    self.first_task_received = False
             time.sleep(0.5)
     
     def _wait_for_stop(self):
