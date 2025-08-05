@@ -5,6 +5,8 @@ from agents.user import User
 import argparse
 import regex
 from collections import Counter
+from typing import List
+import json
 
 class UserRunner:
     def __init__(self, config_path, cot_num):
@@ -15,7 +17,9 @@ class UserRunner:
 
         self.running = False  # 运行状态标志
 
-        self.answers = []
+        self.answers = [] # Results of all tasks
+
+        self.now_answers = [] # Results from all cots of the current task
         self.full_answers = []
         self.result_event = threading.Event()
         self.lock = threading.Lock()  # 用于多线程安全添加结果
@@ -38,14 +42,15 @@ class UserRunner:
                 if msg_type == "task_result":
                     print(f"\n[Result] 收到来自 {sender_id} 的Result")
                     answer = result["result"]
+                    self.now_answers.append(answer)
                     
                     with self.lock:
-                        self.answers.append(answer)
                         self.full_answers.append(result['previous_results'])
-                        print(f"[Result] 当前收到 {len(self.answers)} 个答案")
+                        print(f"[Result] 当前收到 {len(self.now_answers)} 个答案")
 
-                        if len(self.answers) >= self.cot_num:
+                        if len(self.now_answers) >= self.cot_num:
                             self.final_result = self._vote_results()
+                            self.answers.append(self.final_result)
                             print(f"\n✅ [Voting Result] 最终表决输出：{self.final_result}")
                             print("所有的COT如下：")
                             for x in self.full_answers:
@@ -54,12 +59,12 @@ class UserRunner:
 
             except Exception as e:
                 if self.running:
-                    print(f"[Beacon监听错误] {str(e)}")
+                    print(f"[Result 监听错误] {str(e)}")
             time.sleep(0.2)
 
     def _vote_results(self):
         """对当前answers列表进行多数表决"""
-        count = Counter(self.answers)
+        count = Counter(self.now_answers)
         most_common = count.most_common(1)[0]  # 返回格式如 ('result', 3)
         return most_common[0]
     
@@ -70,7 +75,7 @@ class UserRunner:
         def timeout_handler():
             if not self.result_event.is_set():
                 print(f"[Timeout] 任务超过5分钟未返回，标记为超时。")
-                self.now_result = "[TIMEOUT]"
+                self.final_result = "[TIMEOUT]"
                 self.result_event.set()
         
         timer = threading.Timer(300, timeout_handler)  # 180秒超时
@@ -81,10 +86,22 @@ class UserRunner:
         timer.cancel()
 
         return self.final_result, self.full_answers
+    
+    def loop_tasks(self, tasks: List, output_path: str):
+        for index, task_description in enumerate(tasks):
+            self.now_answers = []
+            self.full_answers = []
+            self.final_result = ""
+            self.address_task(task_description)
+
+            if index%5==0:
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    json.dump(self.answers, f, indent=2, ensure_ascii=False)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cot_num", type=int, default=3, help="需要投票的 CoT 答案数")
+    parser.add_argument("--cot_num", type=int, default=1, help="需要投票的 CoT 答案数")
     args = parser.parse_args()
     cot_num = args.cot_num
 
@@ -95,8 +112,10 @@ if __name__ == "__main__":
     runner = UserRunner(config_path, cot_num)
     runner.start()
     runner.answers = []
-    task_description = "What is the positive difference between $120\\%$ of 30 and $130\\%$ of 20?"
-    runner.address_task(task_description)
+    task_description_1 = "How would a typical person answer each of the following questions about causation?\nLong ago, when John was only 17 years old, he got a job working for a large manufacturing company. He started out working on an assembly line for minimum wage, but after a few years at the company, he was given a choice between two line manager positions. He could stay in the woodwork division, which is where he was currently working. Or he could move to the plastics division. John was unsure what to do because he liked working in the woodwork division, but he also thought it might be worth trying something different. He finally decided to switch to the plastics division and try something new. For the last 30 years, John has worked as a production line supervisor in the plastics division. After the first year there, the plastics division was moved to a different building with more space. Unfortunately, through the many years he worked there, John was exposed to asbestos, a highly carcinogenic substance. Most of the plastics division was quite safe, but the small part in which John worked was exposed to asbestos fibers. And now, although John has never smoked a cigarette in his life and otherwise lives a healthy lifestyle, he has a highly progressed and incurable case of lung cancer at the age of 50. John had seen three cancer specialists, all of whom confirmed the worst: that, except for pain, John's cancer was untreatable and he was absolutely certain to die from it very soon (the doctors estimated no more than 2 months). Yesterday, while John was in the hospital for a routine medical appointment, a new nurse accidentally administered the wrong medication to him. John was allergic to the drug and he immediately went into shock and experienced cardiac arrest (a heart attack). Doctors attempted to resuscitate him but he died minutes after the medication was administered. Did John's job cause his premature death?\nOptions:\n- Yes\n- No"
+    tasks = [task_description_1]
+    runner.loop_tasks(tasks=tasks, output_path="/workspace/Symphony_GradientNetwork/bbh.json")
+
 
     try:
         while True:
