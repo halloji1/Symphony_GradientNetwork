@@ -4,6 +4,7 @@ import json
 import regex
 from typing import Dict, Any, List, Tuple
 from vllm import LLM, SamplingParams
+import subprocess
 
 class BaseModel:
     def __init__(self, model_path: str, system_prompt: str = "", device: str = None):
@@ -92,9 +93,15 @@ Input:
 
         raw_result = self.generate(prompt, max_new_tokens=512, temperature=0.25)
         try:
-            result = raw_result.split("Output:")[1].strip()
-            result = result.replace('\\', '\\\\')
-            dag_dict = json.loads(result)
+            match = re.search(r'\{[^{}]*\}', raw_result, re.DOTALL)
+            result = match.group(0)
+            proc = subprocess.run(
+                      ["node", "repair.js"],
+                      input=result.encode("utf-8"),
+                      stdout=subprocess.PIPE,
+                      stderr=subprocess.PIPE,)
+            repaired = proc.stdout.decode("utf-8")
+            dag_dict = json.loads(repaired)
             steps = {}
             for index, s in enumerate(dag_dict.get("subtasks", [])):
                 steps[str(index+1)] = [s, requirement]
@@ -165,9 +172,15 @@ Input:
 
         result = self.generate(prompt)
         try:
-            json_str = result.split("Output:")[1].strip()
-            json_str = json_str.replace('\\', '\\\\')
-            data = json.loads(json_str)
+            match = re.search(r'\{[^{}]*\}', result, re.DOTALL)
+            json_str = match.group(0)
+            proc = subprocess.run(
+                        ["node", "repair.js"],
+                        input=json_str.encode("utf-8"),
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,)
+            repaired = proc.stdout.decode("utf-8")
+            data = json.loads(repaired)
             return data["background"], data["question"], True
         except:
             return "", "", False
