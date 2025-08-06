@@ -30,6 +30,7 @@ class Agent:
             user_input = task["original_problem"]
             task_background, task_question, con_1 = self.base_model.extract_task(user_input)
             if con_1:
+                task["previous_results"].append(task_background)
                 steps, con_2 = self.base_model.generate_task_dag(task_background, task_question, user_input, "math")
                 if con_2:
                     task["steps"] = steps
